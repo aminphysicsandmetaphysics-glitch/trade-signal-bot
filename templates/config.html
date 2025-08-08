@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration - Signal Bot Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Bot Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <!-- API Configuration -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3"><i class="fas fa-key me-2"></i>Telegram API Settings</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="api_id" class="form-label">API ID</label>
+                            <input type="text" class="form-control" id="api_id" name="api_id" 
+                                   value="{{ config.api_id if config else '' }}" required>
+                            <div class="form-text">Get this from my.telegram.org</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="api_hash" class="form-label">API Hash</label>
+                            <input type="text" class="form-control" id="api_hash" name="api_hash" 
+                                   value="{{ config.api_hash if config else '' }}" required>
+                            <div class="form-text">Get this from my.telegram.org</div>
+                        </div>
+                    </div>
+
+                    <!-- Session Configuration -->
+                    <div class="mb-4">
+                        <h6 class="text-primary mb-3"><i class="fas fa-user-cog me-2"></i>Session Settings</h6>
+                        <div class="col-md-6">
+                            <label for="session_name" class="form-label">Session Name</label>
+                            <input type="text" class="form-control" id="session_name" name="session_name" 
+                                   value="{{ config.session_name if config else 'signal_bot' }}">
+                            <div class="form-text">Unique name for this bot session</div>
+                        </div>
+                    </div>
+
+                    <!-- Channel Configuration -->
+                    <div class="mb-4">
+                        <h6 class="text-primary mb-3"><i class="fas fa-broadcast-tower me-2"></i>Channel Settings</h6>
+                        <div class="mb-3">
+                            <label for="from_channels" class="form-label">Source Channels</label>
+                            <textarea class="form-control" id="from_channels" name="from_channels" rows="3" 
+                                      placeholder="Enter channel IDs or usernames, separated by commas">{{ config.get_from_channels_list()|join(', ') if config and config.from_channels else '' }}</textarea>
+                            <div class="form-text">
+                                Channel IDs (numbers) or usernames (e.g., 1467736193, @channelname)
+                                <br>Use commas to separate multiple channels
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="to_channel" class="form-label">Destination Channel</label>
+                            <input type="text" class="form-control" id="to_channel" name="to_channel" 
+                                   value="{{ config.to_channel if config else '' }}" 
+                                   placeholder="@mychannel or channel ID">
+                            <div class="form-text">Channel where parsed signals will be sent</div>
+                        </div>
+                    </div>
+
+                    <!-- Current Configuration Preview -->
+                    {% if config %}
+                    <div class="mb-4">
+                        <h6 class="text-info mb-3"><i class="fas fa-info-circle me-2"></i>Current Configuration</h6>
+                        <div class="bg-dark p-3 rounded">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>API ID:</strong> {{ config.api_id or 'Not set' }}<br>
+                                    <strong>Session:</strong> {{ config.session_name or 'signal_bot' }}<br>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Source Channels:</strong> {{ config.get_from_channels_list()|length if config.from_channels else 0 }}<br>
+                                    <strong>Destination:</strong> {{ config.to_channel or 'Not set' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Save Configuration
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-question-circle me-2"></i>Setup Help</h6>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="helpAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#apiHelp">
+                                How to get Telegram API credentials?
+                            </button>
+                        </h2>
+                        <div id="apiHelp" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <ol>
+                                    <li>Go to <a href="https://my.telegram.org" target="_blank">my.telegram.org</a></li>
+                                    <li>Log in with your phone number</li>
+                                    <li>Go to "API development tools"</li>
+                                    <li>Create a new application</li>
+                                    <li>Copy the API ID and API Hash</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#channelHelp">
+                                How to find channel IDs?
+                            </button>
+                        </h2>
+                        <div id="channelHelp" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <p><strong>For public channels:</strong> Use the username (e.g., @signalchannel)</p>
+                                <p><strong>For private channels:</strong> Use bots like @userinfobot to get the channel ID</p>
+                                <p><strong>For groups:</strong> Add @userinfobot to the group and use /id command</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
